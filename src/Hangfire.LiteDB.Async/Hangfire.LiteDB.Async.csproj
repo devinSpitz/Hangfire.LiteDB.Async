@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Version>0.4.1</Version>
+    <authors>devinSpitz</authors>
+    <PackageId>Hangfire.LiteDB.Async</PackageId>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright></Copyright>
+    <title>Hangfire LiteDB Async Storage</title>
+    <owners>codeyu</owners>
+    <Description>LiteDB async storage implementation for Hangfire (background job system for ASP.NET applications). based on: https://github.com/codeyu/Hangfire.LiteDB</Description>
+    <PackageTags>Hangfire AspNet OWIN LiteDB Long-Running Background Fire-And-Forget Delayed Recurring Tasks Jobs Scheduler Threading Queues</PackageTags>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <License>https://github.com/codeyu/Hangfire.LiteDB/master/LICENSE</License>
+    <PackageProjectUrl>https://github.com/devinSpitz/Hangfire.LiteDB.Async</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/devinSpitz/Hangfire.LiteDB.Async</RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageVersion>0.0.1-alpha</PackageVersion>
+    <Company>Spitz IT Solutions</Company>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Update="litedbasync.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="litedbasync.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);NetCore</DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net451' OR '$(TargetFramework)' == 'net452' ">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.3.1" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="HangFire.Core" Version="1.7.16" />
+    <PackageReference Include="Hangfire.LiteDB" Version="0.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="LiteDB" Version="5.0.11" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <Reference Include="litedbasync, Version=0.0.11.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>litedbasync.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+    
+  <ItemGroup>
+    <None Remove="litedbasync.dll" />
+    <EmbeddedResource Include="litedbasync.dll" />
+  </ItemGroup>
+</Project>
