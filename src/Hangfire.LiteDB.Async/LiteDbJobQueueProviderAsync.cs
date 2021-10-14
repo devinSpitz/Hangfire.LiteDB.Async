@@ -3,7 +3,6 @@
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class LiteDbJobQueueProviderAsync
         : IPersistentJobQueueAsyncProvider
@@ -11,7 +10,6 @@ namespace Hangfire.LiteDB.Async
         private readonly LiteDbStorageOptions _storageOptions;
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="storageOptions"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -21,7 +19,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
@@ -31,7 +28,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>

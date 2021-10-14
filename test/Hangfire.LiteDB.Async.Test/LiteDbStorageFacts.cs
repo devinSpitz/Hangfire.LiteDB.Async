@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using Hangfire.LiteDB.Async.Test.Utils;
-using Hangfire.Storage;
 using Xunit;
 
 namespace Hangfire.LiteDB.Async.Test
@@ -29,24 +27,26 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact]
         public void Ctor_ThrowsAnException_WhenStorageOptionsValueIsNull()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new LiteDbStorageAsync("lite.db",  null));
+            var exception = Assert.Throws<ArgumentNullException>(() => new LiteDbStorageAsync("lite.db", null));
 
             Assert.Equal("storageOptions", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public void GetMonitoringApi_ReturnsNonNullInstance()
         {
-            LiteDbStorageAsync storage = ConnectionUtils.CreateStorage();
-            IMonitoringApi api = storage.GetMonitoringApi();
+            var storage = ConnectionUtils.CreateStorage();
+            var api = storage.GetMonitoringApi();
             Assert.NotNull(api);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public void GetConnection_ReturnsNonNullInstance()
         {
-            LiteDbStorageAsync storage = ConnectionUtils.CreateStorage();
-            using IStorageConnection connection = storage.GetConnection();
+            var storage = ConnectionUtils.CreateStorage();
+            using var connection = storage.GetConnection();
             Assert.NotNull(connection);
         }
 
@@ -60,7 +60,6 @@ namespace Hangfire.LiteDB.Async.Test
         //    Type[] componentTypes = components.Select(x => x.GetType()).ToArray();
         //    Assert.Contains(typeof(ExpirationManager), componentTypes);
         //}
-
     }
 #pragma warning restore 1591
 }

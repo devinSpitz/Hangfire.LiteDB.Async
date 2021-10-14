@@ -1,7 +1,4 @@
-﻿
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using Hangfire.LiteDB.Entities;
@@ -12,20 +9,19 @@ using LiteDB;
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// Represents Counter collection aggregator for LiteDB database
+    ///     Represents Counter collection aggregator for LiteDB database
     /// </summary>
     public class CountersAggregatorAsync : IBackgroundProcess, IServerComponent
     {
-        private static readonly ILog Logger = LogProvider.For<CountersAggregatorAsync>();
-
         private const int NumberOfRecordsInSinglePass = 1000;
+        private static readonly ILog Logger = LogProvider.For<CountersAggregatorAsync>();
         private static readonly TimeSpan DelayBetweenPasses = TimeSpan.FromMilliseconds(500);
-
-        private readonly LiteDbStorageAsync _storage;
         private readonly TimeSpan _interval;
 
+        private readonly LiteDbStorageAsync _storage;
+
         /// <summary>
-        /// Constructs Counter collection aggregator
+        ///     Constructs Counter collection aggregator
         /// </summary>
         /// <param name="storage">LiteDB storage</param>
         /// <param name="interval">Checking interval</param>
@@ -36,7 +32,7 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Runs aggregator
+        ///     Runs aggregator
         /// </summary>
         /// <param name="context">Background processing context</param>
         public void Execute(BackgroundProcessContext context)
@@ -45,7 +41,7 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Runs aggregator
+        ///     Runs aggregator
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>
         public void Execute(CancellationToken cancellationToken)
@@ -84,21 +80,24 @@ namespace Hangfire.LiteDB.Async
 
                     foreach (var item in recordsToMerge)
                     {
-                        AggregatedCounter aggregatedItem = database
+                        var aggregatedItem = database
                             .StateDataAggregatedCounter
                             .FindAsync(_ => _.Key == item.Key).GetAwaiter().GetResult()
                             .FirstOrDefault();
 
                         if (aggregatedItem != null)
                         {
-                            var aggregatedCounters = database.StateDataAggregatedCounter.FindAsync(_ => _.Key == item.Key).GetAwaiter().GetResult();
+                            var aggregatedCounters = database.StateDataAggregatedCounter
+                                .FindAsync(_ => _.Key == item.Key).GetAwaiter().GetResult();
 
                             foreach (var counter in aggregatedCounters)
                             {
                                 counter.Value = counter.Value.ToInt64() + item.Value;
                                 counter.ExpireAt = item.ExpireAt > aggregatedItem.ExpireAt
-                                    ?  (item.ExpireAt.HasValue ? (DateTime?)item.ExpireAt.Value : null)
-                                    :  (aggregatedItem.ExpireAt.HasValue ? (DateTime?)aggregatedItem.ExpireAt.Value : null);
+                                    ? item.ExpireAt.HasValue ? (DateTime?) item.ExpireAt.Value : null
+                                    : aggregatedItem.ExpireAt.HasValue
+                                        ? (DateTime?) aggregatedItem.ExpireAt.Value
+                                        : null;
                                 database.StateDataAggregatedCounter.UpdateAsync(counter).GetAwaiter().GetResult();
                             }
                         }
@@ -106,7 +105,7 @@ namespace Hangfire.LiteDB.Async
                         {
                             database
                                 .StateDataAggregatedCounter
-                                .InsertAsync(new AggregatedCounter 
+                                .InsertAsync(new AggregatedCounter
                                 {
                                     Id = ObjectId.NewObjectId(),
                                     Key = item.Key,
@@ -128,7 +127,7 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Returns text representation of the object
+        ///     Returns text representation of the object
         /// </summary>
         public override string ToString()
         {

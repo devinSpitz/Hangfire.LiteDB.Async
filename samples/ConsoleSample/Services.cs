@@ -30,15 +30,9 @@ namespace ConsoleSample
         public void Random(int number)
         {
             int time;
-            lock (_random)
-            {
-                time = _random.Next(10);
-            }
+            time = _random.Next(10);
 
-            if (time < 5)
-            {
-                throw new Exception();
-            }
+            if (time < 5) throw new Exception();
 
             Thread.Sleep(TimeSpan.FromSeconds(5 + time));
             Console.WriteLine("Finished task: " + number);
@@ -62,7 +56,7 @@ namespace ConsoleSample
                 throw;
             }
         }
-        
+
         public void Args(string name, int authorId, DateTime createdAt)
         {
             Console.WriteLine("{0}, {1}, {2}", name, authorId, createdAt);
@@ -89,12 +83,6 @@ namespace ConsoleSample
         {
         }
 
-        public class CustomObject
-        {
-            public int Id { get; set; }
-            public CustomObject[] Children { get; set; }
-        }
-
         public void Write(char character)
         {
             Console.Write(character);
@@ -103,6 +91,12 @@ namespace ConsoleSample
         public void WriteBlankLine()
         {
             Console.WriteLine();
+        }
+
+        public class CustomObject
+        {
+            public int Id { get; set; }
+            public CustomObject[] Children { get; set; }
         }
     }
 }

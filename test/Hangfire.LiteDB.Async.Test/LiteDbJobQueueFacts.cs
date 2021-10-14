@@ -12,7 +12,7 @@ namespace Hangfire.LiteDB.Async.Test
     [Collection("Database")]
     public class LiteDbJobQueueFacts
     {
-        private static readonly string[] DefaultQueues = { "default" };
+        private static readonly string[] DefaultQueues = {"default"};
 
         [Fact]
         public void Ctor_ThrowsAnException_WhenConnectionIsNull()
@@ -27,276 +27,290 @@ namespace Hangfire.LiteDB.Async.Test
         public void Ctor_ThrowsAnException_WhenOptionsValueIsNull()
         {
             var connection = UseConnection();
-                var exception = Assert.Throws<ArgumentNullException>(() =>
-                    new LiteDbJobQueueAsync(connection, null));
+            var exception = Assert.Throws<ArgumentNullException>(() =>
+                new LiteDbJobQueueAsync(connection, null));
 
-                Assert.Equal("storageOptions", exception.ParamName);
+            Assert.Equal("storageOptions", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsNull()
         {
             var connection = UseConnection();
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                    queue.Dequeue(null, CreateTimingOutCancellationToken()));
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                queue.Dequeue(null, CreateTimingOutCancellationToken()));
 
-                Assert.Equal("queues", exception.ParamName);
+            Assert.Equal("queues", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsEmpty()
         {
             var connection = UseConnection();
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    queue.Dequeue(new string[0], CreateTimingOutCancellationToken()));
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                queue.Dequeue(new string[0], CreateTimingOutCancellationToken()));
 
-                Assert.Equal("queues", exception.ParamName);
+            Assert.Equal("queues", exception.ParamName);
         }
 
         [Fact]
         public async Task Dequeue_ThrowsOperationCanceled_WhenCancellationTokenIsSetAtTheBeginning()
         {
             var connection = UseConnection();
-                var cts = new CancellationTokenSource();
-                cts.Cancel();
-                var queue = CreateJobQueue(connection);
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var queue = CreateJobQueue(connection);
 
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                    queue.Dequeue(DefaultQueues, cts.Token));
+                queue.Dequeue(DefaultQueues, cts.Token));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldWaitIndefinitely_WhenThereAreNoJobs()
         {
             var connection = UseConnection();
-                var cts = new CancellationTokenSource(200);
-                var queue = CreateJobQueue(connection);
+            var cts = new CancellationTokenSource(200);
+            var queue = CreateJobQueue(connection);
 
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                    queue.Dequeue(DefaultQueues, cts.Token));
+                queue.Dequeue(DefaultQueues, cts.Token));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldFetchAJob_FromTheSpecifiedQueue()
         {
             // Arrange
             var connection = UseConnection();
-                var jobQueue = new JobQueue
-                {
-                    JobId = 1,
-                    Queue = "default"
-                };
+            var jobQueue = new JobQueue
+            {
+                JobId = 1,
+                Queue = "default"
+            };
 
-                await connection.JobQueue.InsertAsync(jobQueue);
+            await connection.JobQueue.InsertAsync(jobQueue);
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                // Act
-                LiteDbFetchedJobAsync payload = (LiteDbFetchedJobAsync)await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
+            // Act
+            var payload =
+                (LiteDbFetchedJobAsync) await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
 
-                // Assert
-                Assert.Equal("1", payload.JobId);
-                Assert.Equal("default", payload.Queue);
+            // Assert
+            Assert.Equal("1", payload.JobId);
+            Assert.Equal("default", payload.Queue);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldLeaveJobInTheQueue_ButSetItsFetchedAtValue()
         {
             // Arrange
             var connection = UseConnection();
-                var job = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(job);
+            var job = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(job);
 
-                var jobQueue = new JobQueue
-                {
-                    JobId =  job.Id,
-                    Queue = "default"
-                };
-                await connection.JobQueue.InsertAsync(jobQueue);
+            var jobQueue = new JobQueue
+            {
+                JobId = job.Id,
+                Queue = "default"
+            };
+            await connection.JobQueue.InsertAsync(jobQueue);
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                // Act
-                var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
-                var payloadJobId = int.Parse(payload.JobId);
-                // Assert
-                Assert.NotNull(payload);
+            // Act
+            var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
+            var payloadJobId = int.Parse(payload.JobId);
+            // Assert
+            Assert.NotNull(payload);
 
-                var fetchedAt = (await connection.JobQueue.FindAsync(_ => _.JobId== payloadJobId)).FirstOrDefault()?.FetchedAt;
+            var fetchedAt = (await connection.JobQueue.FindAsync(_ => _.JobId == payloadJobId)).FirstOrDefault()
+                ?.FetchedAt;
 
-                Assert.NotNull(fetchedAt);
-                Assert.True(fetchedAt > DateTime.UtcNow.AddMinutes(-1));
+            Assert.NotNull(fetchedAt);
+            Assert.True(fetchedAt > DateTime.UtcNow.AddMinutes(-1));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldFetchATimedOutJobs_FromTheSpecifiedQueue()
         {
             // Arrange
             var connection = UseConnection();
-                var job = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(job);
+            var job = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(job);
 
-                var jobQueue = new JobQueue
-                {
-                    JobId =  job.Id,
-                    Queue = "default",
-                    FetchedAt = DateTime.UtcNow.AddDays(-1)
-                };
-                await connection.JobQueue.InsertAsync(jobQueue);
+            var jobQueue = new JobQueue
+            {
+                JobId = job.Id,
+                Queue = "default",
+                FetchedAt = DateTime.UtcNow.AddDays(-1)
+            };
+            await connection.JobQueue.InsertAsync(jobQueue);
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                // Act
-                var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
+            // Act
+            var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
 
-                // Assert
-                Assert.NotEmpty(payload.JobId);
+            // Assert
+            Assert.NotEmpty(payload.JobId);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldSetFetchedAt_OnlyForTheFetchedJob()
         {
             // Arrange
             var connection = UseConnection();
-                var job1 = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(job1);
+            var job1 = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(job1);
 
-                var job2 = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-               await connection.Job.InsertAsync(job2);
+            var job2 = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(job2);
 
-                await connection.JobQueue.InsertAsync(new JobQueue
-                {
-                    JobId =  job1.Id,
-                    Queue = "default"
-                });
+            await connection.JobQueue.InsertAsync(new JobQueue
+            {
+                JobId = job1.Id,
+                Queue = "default"
+            });
 
-                await connection.JobQueue.InsertAsync(new JobQueue
-                {
-                    JobId =  job2.Id,
-                    Queue = "default"
-                });
+            await connection.JobQueue.InsertAsync(new JobQueue
+            {
+                JobId = job2.Id,
+                Queue = "default"
+            });
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                // Act
-                var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
-                var payloadJobId = int.Parse(payload.JobId);
+            // Act
+            var payload = await queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken());
+            var payloadJobId = int.Parse(payload.JobId);
 
-                // Assert
-                var otherJobFetchedAt = (await connection.JobQueue.FindAsync(_ => _.JobId!= payloadJobId)).FirstOrDefault()?.FetchedAt;
+            // Assert
+            var otherJobFetchedAt = (await connection.JobQueue.FindAsync(_ => _.JobId != payloadJobId)).FirstOrDefault()
+                ?.FetchedAt;
 
-                Assert.Null(otherJobFetchedAt);
+            Assert.Null(otherJobFetchedAt);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldFetchJobs_OnlyFromSpecifiedQueues()
         {
             var connection = UseConnection();
-                var job1 = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(job1);
+            var job1 = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(job1);
 
-                await connection.JobQueue.InsertAsync(new JobQueue
-                {
-                    JobId =  job1.Id,
-                    Queue = "critical"
-                });
+            await connection.JobQueue.InsertAsync(new JobQueue
+            {
+                JobId = job1.Id,
+                Queue = "critical"
+            });
 
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken()));
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                queue.Dequeue(DefaultQueues, CreateTimingOutCancellationToken()));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Dequeue_ShouldFetchJobs_FromMultipleQueuesBasedOnQueuePriority()
         {
             var connection = UseConnection();
-                var criticalJob = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(criticalJob);
+            var criticalJob = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(criticalJob);
 
-                var defaultJob = new LiteJob
-                {
-                    InvocationData = "",
-                    Arguments = "",
-                    CreatedAt = DateTime.UtcNow
-                };
-                await connection.Job.InsertAsync(defaultJob);
+            var defaultJob = new LiteJob
+            {
+                InvocationData = "",
+                Arguments = "",
+                CreatedAt = DateTime.UtcNow
+            };
+            await connection.Job.InsertAsync(defaultJob);
 
-                await connection.JobQueue.InsertAsync(new JobQueue
-                {
-                    JobId = defaultJob.Id,
-                    Queue = "default"
-                });
+            await connection.JobQueue.InsertAsync(new JobQueue
+            {
+                JobId = defaultJob.Id,
+                Queue = "default"
+            });
 
-                await connection.JobQueue.InsertAsync(new JobQueue
-                {
-                    JobId = criticalJob.Id,
-                    Queue = "critical"
-                });
+            await connection.JobQueue.InsertAsync(new JobQueue
+            {
+                JobId = criticalJob.Id,
+                Queue = "critical"
+            });
 
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                var critical = (LiteDbFetchedJobAsync)await queue.Dequeue(
-                    new[] { "critical", "default" },
-                    CreateTimingOutCancellationToken());
+            var critical = (LiteDbFetchedJobAsync) await queue.Dequeue(
+                new[] {"critical", "default"},
+                CreateTimingOutCancellationToken());
 
-                Assert.NotNull(critical.JobId);
-                Assert.Equal("critical", critical.Queue);
+            Assert.NotNull(critical.JobId);
+            Assert.Equal("critical", critical.Queue);
 
-                var @default = (LiteDbFetchedJobAsync)await queue.Dequeue(
-                    new[] { "critical", "default" },
-                    CreateTimingOutCancellationToken());
+            var @default = (LiteDbFetchedJobAsync) await queue.Dequeue(
+                new[] {"critical", "default"},
+                CreateTimingOutCancellationToken());
 
-                Assert.NotNull(@default.JobId);
-                Assert.Equal("default", @default.Queue);
+            Assert.NotNull(@default.JobId);
+            Assert.Equal("default", @default.Queue);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Enqueue_AddsAJobToTheQueue()
         {
             var connection = UseConnection();
-                var queue = CreateJobQueue(connection);
+            var queue = CreateJobQueue(connection);
 
-                await queue.Enqueue("default", "1");
+            await queue.Enqueue("default", "1");
 
-                var record = (await connection.JobQueue.FindAllAsync()).ToList().Single();
-                Assert.Equal("1", record.JobId.ToString());
-                Assert.Equal("default", record.Queue);
-                Assert.Null(record.FetchedAt);
+            var record = (await connection.JobQueue.FindAllAsync()).ToList().Single();
+            Assert.Equal("1", record.JobId.ToString());
+            Assert.Equal("default", record.Queue);
+            Assert.Null(record.FetchedAt);
         }
 
         private static CancellationToken CreateTimingOutCancellationToken()
@@ -307,13 +321,13 @@ namespace Hangfire.LiteDB.Async.Test
 
         private static LiteDbJobQueueAsync CreateJobQueue(HangfireDbContextAsync connection)
         {
-            return new LiteDbJobQueueAsync(connection, new LiteDbStorageOptions());
+            return new(connection, new LiteDbStorageOptions());
         }
 
         private static HangfireDbContextAsync UseConnection()
         {
             var connection = ConnectionUtils.CreateConnection();
-            return (connection);
+            return connection;
         }
     }
 #pragma warning restore 1591

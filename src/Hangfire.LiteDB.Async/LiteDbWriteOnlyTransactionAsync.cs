@@ -9,12 +9,12 @@ using LiteDB;
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public sealed class LiteDbWriteOnlyTransactionAsync
-     : JobStorageTransaction
+        : JobStorageTransaction
     {
-        private readonly Queue<Action<HangfireDbContextAsync>> _commandQueue = new Queue<Action<HangfireDbContextAsync>>();
+        private readonly Queue<Action<HangfireDbContextAsync>> _commandQueue =
+            new Queue<Action<HangfireDbContextAsync>>();
 
         private readonly HangfireDbContextAsync _connection;
 
@@ -30,17 +30,15 @@ namespace Hangfire.LiteDB.Async
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _queueProviders = queueProviders ?? throw new ArgumentNullException(nameof(queueProviders));
-            
         }
+
         /// <summary>
-        /// 
         /// </summary>
         public override void Dispose()
         {
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="jobId"></param>
         /// <param name="expireIn"></param>
@@ -56,7 +54,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="jobId"></param>
         public override void PersistJob(string jobId)
@@ -71,7 +68,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="jobId"></param>
         /// <param name="state"></param>
@@ -95,7 +91,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="jobId"></param>
         /// <param name="state"></param>
@@ -118,7 +113,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="jobId"></param>
@@ -127,14 +121,10 @@ namespace Hangfire.LiteDB.Async
             var provider = _queueProviders.GetProvider(queue);
             var persistentQueue = provider.GetJobQueue(_connection);
 
-            QueueCommand(_ =>
-            {
-                persistentQueue.Enqueue(queue, jobId);
-            });
+            QueueCommand(_ => { persistentQueue.Enqueue(queue, jobId); });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         public override void IncrementCounter(string key)
@@ -148,7 +138,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="expireIn"></param>
@@ -165,7 +154,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         public override void DecrementCounter(string key)
@@ -179,7 +167,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="expireIn"></param>
@@ -195,7 +182,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
@@ -205,14 +191,12 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="score"></param>
         public override void AddToSet(string key, string value, double score)
         {
-            
             QueueCommand(x =>
             {
                 var liteSet = new LiteSet
@@ -222,7 +206,8 @@ namespace Hangfire.LiteDB.Async
                     Value = value,
                     ExpireAt = null
                 };
-                var oldSet = x.StateDataSet.FindAsync(_ => _.Key == key && Convert.ToString(_.Value) == value).GetAwaiter().GetResult().FirstOrDefault();
+                var oldSet = x.StateDataSet.FindAsync(_ => _.Key == key && Convert.ToString(_.Value) == value)
+                    .GetAwaiter().GetResult().FirstOrDefault();
 
                 if (oldSet == null)
                 {
@@ -234,21 +219,20 @@ namespace Hangfire.LiteDB.Async
                     x.StateDataSet.UpdateAsync(liteSet).GetAwaiter().GetResult();
                 }
             });
-            
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public override void RemoveFromSet(string key, string value)
         {
-            QueueCommand(x => x.StateDataSet.DeleteManyAsync(_ => _.Key == key && Convert.ToString(_.Value) == value).GetAwaiter().GetResult());
+            QueueCommand(x =>
+                x.StateDataSet.DeleteManyAsync(_ => _.Key == key && Convert.ToString(_.Value) == value).GetAwaiter()
+                    .GetResult());
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
@@ -263,17 +247,17 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public override void RemoveFromList(string key, string value)
         {
-            QueueCommand(x => x.StateDataList.DeleteManyAsync(_ => _.Key == key && Convert.ToString(_.Value) == value).GetAwaiter().GetResult());
+            QueueCommand(x =>
+                x.StateDataList.DeleteManyAsync(_ => _.Key == key && Convert.ToString(_.Value) == value).GetAwaiter()
+                    .GetResult());
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="keepStartingFrom"></param>
@@ -290,18 +274,14 @@ namespace Hangfire.LiteDB.Async
                     .OrderBy(_ => _.Key)
                     .ThenBy(_ => _.Value)
                     .Select((data, i) => new {Index = i + 1, Data = data.Id})
-                    .Where(_ => !((_.Index >= start) && (_.Index <= end)))
+                    .Where(_ => !(_.Index >= start && _.Index <= end))
                     .Select(_ => _.Data)
                     .ToList();
-                foreach(var id in items)
-                {
-                    x.StateDataList.DeleteAsync(new BsonValue(id)).GetAwaiter().GetResult();
-                }
+                foreach (var id in items) x.StateDataList.DeleteAsync(new BsonValue(id)).GetAwaiter().GetResult();
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="keyValuePairs"></param>
@@ -313,7 +293,7 @@ namespace Hangfire.LiteDB.Async
 
             if (keyValuePairs == null)
                 throw new ArgumentNullException(nameof(keyValuePairs));
-            
+
             foreach (var keyValuePair in keyValuePairs)
             {
                 var field = keyValuePair.Key;
@@ -329,7 +309,8 @@ namespace Hangfire.LiteDB.Async
                         ExpireAt = null
                     };
 
-                    var oldHash = x.StateDataHash.FindAsync(_ => _.Key == key && _.Field == field).GetAwaiter().GetResult().FirstOrDefault();
+                    var oldHash = x.StateDataHash.FindAsync(_ => _.Key == key && _.Field == field).GetAwaiter()
+                        .GetResult().FirstOrDefault();
                     if (oldHash == null)
                     {
                         x.StateDataHash.InsertAsync(state).GetAwaiter().GetResult();
@@ -338,13 +319,12 @@ namespace Hangfire.LiteDB.Async
                     {
                         state.Id = oldHash.Id;
                         x.StateDataHash.UpdateAsync(state).GetAwaiter().GetResult();
-                    }  
+                    }
                 });
             }
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -357,14 +337,10 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override void Commit()
         {
-            foreach (var action in _commandQueue)
-            {
-                action.Invoke(_connection);
-            }
+            foreach (var action in _commandQueue) action.Invoke(_connection);
         }
 
         private void QueueCommand(Action<HangfireDbContextAsync> action)
@@ -373,14 +349,10 @@ namespace Hangfire.LiteDB.Async
         }
 
 
-
         //New methods to support Hangfire pro feature - batches.
 
 
-
-
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="expireIn"></param>
@@ -388,22 +360,19 @@ namespace Hangfire.LiteDB.Async
         public override void ExpireSet(string key, TimeSpan expireIn)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
-            
+
             QueueCommand(x =>
             {
                 var states = x.StateDataSet.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = DateTime.UtcNow.Add(expireIn);
                     x.StateDataSet.UpdateAsync(state).GetAwaiter().GetResult();
                 }
-                
             });
-            
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="expireIn"></param>
@@ -411,21 +380,19 @@ namespace Hangfire.LiteDB.Async
         public override void ExpireList(string key, TimeSpan expireIn)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
-         
+
             QueueCommand(x =>
             {
                 var states = x.StateDataList.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = DateTime.UtcNow.Add(expireIn);
                     x.StateDataList.UpdateAsync(state).GetAwaiter().GetResult();
                 }
-                
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="expireIn"></param>
@@ -433,21 +400,19 @@ namespace Hangfire.LiteDB.Async
         public override void ExpireHash(string key, TimeSpan expireIn)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
-           
+
             QueueCommand(x =>
             {
                 var states = x.StateDataHash.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = DateTime.UtcNow.Add(expireIn);
                     x.StateDataHash.UpdateAsync(state).GetAwaiter().GetResult();
                 }
-                
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -457,17 +422,15 @@ namespace Hangfire.LiteDB.Async
             QueueCommand(x =>
             {
                 var states = x.StateDataSet.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = null;
                     x.StateDataSet.UpdateAsync(state).GetAwaiter().GetResult();
                 }
-                
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -477,16 +440,15 @@ namespace Hangfire.LiteDB.Async
             QueueCommand(x =>
             {
                 var states = x.StateDataList.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = null;
                     x.StateDataList.UpdateAsync(state).GetAwaiter().GetResult();
-                }       
+                }
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -496,16 +458,15 @@ namespace Hangfire.LiteDB.Async
             QueueCommand(x =>
             {
                 var states = x.StateDataHash.FindAsync(_ => _.Key == key).GetAwaiter().GetResult();
-                foreach(var state in states)
+                foreach (var state in states)
                 {
                     state.ExpireAt = null;
                     x.StateDataHash.UpdateAsync(state).GetAwaiter().GetResult();
-                }    
+                }
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <param name="items"></param>
@@ -514,9 +475,8 @@ namespace Hangfire.LiteDB.Async
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (items == null) throw new ArgumentNullException(nameof(items));
-            
+
             foreach (var item in items)
-            {
                 QueueCommand(x =>
                 {
                     var state = new LiteSet
@@ -527,7 +487,8 @@ namespace Hangfire.LiteDB.Async
                         Score = 0.0
                     };
 
-                    var oldSet = x.StateDataSet.FindAsync(_ => _.Key == key && Convert.ToString(_.Value) == item).GetAwaiter().GetResult().FirstOrDefault();
+                    var oldSet = x.StateDataSet.FindAsync(_ => _.Key == key && Convert.ToString(_.Value) == item)
+                        .GetAwaiter().GetResult().FirstOrDefault();
 
                     if (oldSet == null)
                     {
@@ -537,13 +498,11 @@ namespace Hangfire.LiteDB.Async
                     {
                         state.Id = oldSet.Id;
                         x.StateDataSet.UpdateAsync(state).GetAwaiter().GetResult();
-                    } 
+                    }
                 });
-            }
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="key"></param>
         /// <exception cref="ArgumentNullException"></exception>

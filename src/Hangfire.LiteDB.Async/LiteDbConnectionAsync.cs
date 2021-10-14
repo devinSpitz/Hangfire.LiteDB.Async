@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Hangfire.Common;
 using Hangfire.LiteDB.Entities;
 using Hangfire.Server;
@@ -12,15 +11,13 @@ using LiteDB;
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class LiteDbConnectionAsync : JobStorageConnection
     {
-
         private readonly PersistentJobQueueProviderCollectionAsync _queueProviders;
 
         /// <summary>
-        /// Ctor using default storage options
+        ///     Ctor using default storage options
         /// </summary>
 #pragma warning disable 1591
         public LiteDbConnectionAsync(
@@ -69,7 +66,6 @@ namespace Hangfire.LiteDB.Async
             var jobId = jobDto.Id;
 
             return jobId.ToString();
-
         }
 
         public override IFetchedJob FetchNextJob(string[] queues, CancellationToken cancellationToken)
@@ -83,10 +79,8 @@ namespace Hangfire.LiteDB.Async
                 .ToArray();
 
             if (providers.Length != 1)
-            {
                 throw new InvalidOperationException(
                     $"Multiple provider instances registered for queues: {string.Join(", ", queues)}. You should choose only one type of persistent queues per server instance.");
-            }
 
             var persistentQueue = providers[0].GetJobQueue(Database);
             return persistentQueue.Dequeue(queues, cancellationToken).GetAwaiter().GetResult();
@@ -101,18 +95,12 @@ namespace Hangfire.LiteDB.Async
                 throw new ArgumentNullException(nameof(name));
 
             var iJobId = int.Parse(id);
-            var liteJob =  Database.Job.FindByIdAsync(iJobId).GetAwaiter().GetResult();
-            if (liteJob.Parameters == null)
-            {
-                liteJob.Parameters = new Dictionary<string, string>();
-            }
-            if (liteJob.Parameters.ContainsKey(name))
-            {
-                liteJob.Parameters.Remove(name);
-            }
+            var liteJob = Database.Job.FindByIdAsync(iJobId).GetAwaiter().GetResult();
+            if (liteJob.Parameters == null) liteJob.Parameters = new Dictionary<string, string>();
+            if (liteJob.Parameters.ContainsKey(name)) liteJob.Parameters.Remove(name);
             liteJob.Parameters.Add(name, value);
 
-             Database.Job.UpdateAsync(liteJob).GetAwaiter().GetResult();
+            Database.Job.UpdateAsync(liteJob).GetAwaiter().GetResult();
         }
 
         public override string GetJobParameter(string id, string name)
@@ -214,7 +202,7 @@ namespace Hangfire.LiteDB.Async
                 StartedAt = DateTime.UtcNow
             };
 
-            var server =  Database.Server.FindByIdAsync(serverId).GetAwaiter().GetResult();
+            var server = Database.Server.FindByIdAsync(serverId).GetAwaiter().GetResult();
             if (server == null)
             {
                 server = new Entities.Server
@@ -223,66 +211,54 @@ namespace Hangfire.LiteDB.Async
                     Data = SerializationHelper.Serialize(data, SerializationOption.User),
                     LastHeartbeat = DateTime.UtcNow
                 };
-                 Database.Server.InsertAsync(server).GetAwaiter().GetResult();
+                Database.Server.InsertAsync(server).GetAwaiter().GetResult();
             }
             else
             {
                 server.LastHeartbeat = DateTime.UtcNow;
                 server.Data = SerializationHelper.Serialize(data, SerializationOption.User);
-                 Database.Server.UpdateAsync(server).GetAwaiter().GetResult();
+                Database.Server.UpdateAsync(server).GetAwaiter().GetResult();
             }
         }
 
         public override void RemoveServer(string serverId)
         {
-            if (serverId == null)
-            {
-                throw new ArgumentNullException(nameof(serverId));
-            }
-            
+            if (serverId == null) throw new ArgumentNullException(nameof(serverId));
+
             Database.Server.DeleteAsync(new BsonValue(serverId)).GetAwaiter().GetResult();
         }
 
         public override void Heartbeat(string serverId)
         {
-            if (serverId == null)
-            {
-                throw new ArgumentNullException(nameof(serverId));
-            }
+            if (serverId == null) throw new ArgumentNullException(nameof(serverId));
 
-            var server =  Database.Server.FindByIdAsync(serverId).GetAwaiter().GetResult();
+            var server = Database.Server.FindByIdAsync(serverId).GetAwaiter().GetResult();
             if (server == null)
                 return;
 
             server.LastHeartbeat = DateTime.UtcNow;
-             Database.Server.UpdateAsync(server);
+            Database.Server.UpdateAsync(server);
         }
 
         public override int RemoveTimedOutServers(TimeSpan timeOut)
         {
             if (timeOut.Duration() != timeOut)
-            {
                 throw new ArgumentException("The `timeOut` value must be positive.", nameof(timeOut));
-            }
             var delCount = 0;
-            var servers =  Database.Server.FindAllAsync().GetAwaiter().GetResult();
+            var servers = Database.Server.FindAllAsync().GetAwaiter().GetResult();
             foreach (var server in servers)
-            {
                 if (server.LastHeartbeat < DateTime.UtcNow.Add(timeOut.Negate()))
                 {
-                     Database.Server.DeleteAsync(server.Id).GetAwaiter().GetResult();
+                    Database.Server.DeleteAsync(server.Id).GetAwaiter().GetResult();
                     delCount++;
                 }
-            }
+
             return delCount;
         }
 
         public override HashSet<string> GetAllItemsFromSet(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var result = Database
                 .StateDataSet
@@ -296,21 +272,16 @@ namespace Hangfire.LiteDB.Async
 
         public override string GetFirstByLowestScoreFromSet(string key, double fromScore, double toScore)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             if (toScore < fromScore)
-            {
                 throw new ArgumentException("The `toScore` value must be higher or equal to the `fromScore` value.");
-            }
 
             return Database
                 .StateDataSet
                 .FindAsync(_ => _.Key == key &&
-                      _.Score >= fromScore &&
-                       _.Score <= toScore).GetAwaiter().GetResult()
+                                _.Score >= fromScore &&
+                                _.Score <= toScore).GetAwaiter().GetResult()
                 .OrderBy(_ => _.Score)
                 .Select(_ => _.Value)
                 .FirstOrDefault() as string;
@@ -327,16 +298,13 @@ namespace Hangfire.LiteDB.Async
 
         public override Dictionary<string, string> GetAllEntriesFromHash(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var result = Database
                 .StateDataHash
                 .FindAsync(_ => _.Key == key).GetAwaiter().GetResult()
                 .AsEnumerable()
-                .Select(_ => new { _.Field, _.Value})
+                .Select(_ => new {_.Field, _.Value})
                 .ToDictionary(x => x.Field, x => Convert.ToString(x.Value));
 
             return result.Count != 0 ? result : null;
@@ -344,10 +312,7 @@ namespace Hangfire.LiteDB.Async
 
         public override long GetSetCount(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataSet
@@ -357,10 +322,7 @@ namespace Hangfire.LiteDB.Async
 
         public override List<string> GetRangeFromSet(string key, int startingFrom, int endingAt)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataSet
@@ -368,21 +330,18 @@ namespace Hangfire.LiteDB.Async
                 .OrderBy(_ => _.Id)
                 .Skip(startingFrom)
                 .Take(endingAt - startingFrom + 1) // inclusive -- ensure the last element is included
-                .Select(dto => (string)dto.Value)
+                .Select(dto => (string) dto.Value)
                 .ToList();
         }
 
         public override TimeSpan GetSetTtl(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var values = Database
                 .StateDataSet
                 .FindAsync(_ => _.Key == key &&
-                       _.ExpireAt != null).GetAwaiter().GetResult()
+                                _.ExpireAt != null).GetAwaiter().GetResult()
                 .Select(dto => dto.ExpireAt.Value)
                 .ToList();
 
@@ -391,10 +350,7 @@ namespace Hangfire.LiteDB.Async
 
         public override long GetCounter(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var counterQuery = Database
                 .StateDataCounter
@@ -417,10 +373,7 @@ namespace Hangfire.LiteDB.Async
 
         public override long GetHashCount(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataHash
@@ -430,10 +383,7 @@ namespace Hangfire.LiteDB.Async
 
         public override TimeSpan GetHashTtl(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var result = Database
                 .StateDataHash
@@ -447,15 +397,9 @@ namespace Hangfire.LiteDB.Async
 
         public override string GetValueFromHash(string key, string name)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            if (name == null) throw new ArgumentNullException(nameof(name));
 
             var result = Database
                 .StateDataHash
@@ -467,10 +411,7 @@ namespace Hangfire.LiteDB.Async
 
         public override long GetListCount(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataList
@@ -480,10 +421,7 @@ namespace Hangfire.LiteDB.Async
 
         public override TimeSpan GetListTtl(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             var result = Database
                 .StateDataList
@@ -497,10 +435,7 @@ namespace Hangfire.LiteDB.Async
 
         public override List<string> GetRangeFromList(string key, int startingFrom, int endingAt)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataList
@@ -508,22 +443,19 @@ namespace Hangfire.LiteDB.Async
                 .OrderByDescending(_ => _.Id)
                 .Skip(startingFrom)
                 .Take(endingAt - startingFrom + 1) // inclusive -- ensure the last element is included
-                .Select(_ => (string)_.Value)
+                .Select(_ => (string) _.Value)
                 .ToList();
         }
 
         public override List<string> GetAllItemsFromList(string key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
 
             return Database
                 .StateDataList
                 .FindAsync(_ => _.Key == key).GetAwaiter().GetResult()
                 .OrderByDescending(_ => _.Id)
-                .Select(_ => (string)_.Value)
+                .Select(_ => (string) _.Value)
                 .ToList();
         }
     }

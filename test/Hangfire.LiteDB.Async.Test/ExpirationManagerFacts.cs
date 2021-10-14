@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Hangfire.LiteDB.Async.Test.Utils;
 using Hangfire.LiteDB.Entities;
 using LiteDB;
-using Microsoft.Win32.SafeHandles;
 using Xunit;
 
 namespace Hangfire.LiteDB.Async.Test
@@ -14,10 +13,10 @@ namespace Hangfire.LiteDB.Async.Test
     [Collection("Database")]
     public class ExpirationManagerFacts
     {
+        private static PersistentJobQueueProviderCollectionAsync _queueProviders;
         private readonly LiteDbStorageAsync _storage;
 
         private readonly CancellationToken _token;
-        private static PersistentJobQueueProviderCollectionAsync _queueProviders;
 
         public ExpirationManagerFacts()
         {
@@ -33,7 +32,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.Throws<ArgumentNullException>(() => new ExpirationManager(null));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_RemovesOutdatedRecords()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -43,7 +43,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.True(await IsEntryExpired(connection));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_DoesNotRemoveEntries_WithNoExpirationTimeSet()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -53,7 +54,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.False(await IsEntryExpired(connection));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_DoesNotRemoveEntries_WithFreshExpirationTime()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -63,7 +65,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.False(await IsEntryExpired(connection));
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_CounterTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -80,7 +83,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.Equal(0, count);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_JobTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -89,7 +93,7 @@ namespace Hangfire.LiteDB.Async.Test
                 InvocationData = "",
                 Arguments = "",
                 CreatedAt = DateTime.UtcNow,
-                ExpireAt = DateTime.UtcNow.AddMonths(-1),
+                ExpireAt = DateTime.UtcNow.AddMonths(-1)
             });
             var manager = CreateManager();
             manager.Execute(_token);
@@ -97,7 +101,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.Equal(0, count);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_ListTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -115,7 +120,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.Equal(0, count);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_SetTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -135,7 +141,8 @@ namespace Hangfire.LiteDB.Async.Test
             Assert.Equal(0, count);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_HashTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -156,7 +163,8 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task Execute_Processes_AggregatedCounterTable()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -174,13 +182,18 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
 
-
         private static void CreateExpirationEntries(HangfireDbContextAsync connection, DateTime? expireAt)
         {
             Commit(connection, x => x.AddToSet("my-key", "my-value"));
             Commit(connection, x => x.AddToSet("my-key", "my-value1"));
-            Commit(connection, x => x.SetRangeInHash("my-hash-key", new[] { new KeyValuePair<string, string>("key", "value"), new KeyValuePair<string, string>("key1", "value1") }));
-            Commit(connection, x => x.AddRangeToSet("my-key", new[] { "my-value", "my-value1" }));
+            Commit(connection,
+                x => x.SetRangeInHash("my-hash-key",
+                    new[]
+                    {
+                        new KeyValuePair<string, string>("key", "value"),
+                        new KeyValuePair<string, string>("key1", "value1")
+                    }));
+            Commit(connection, x => x.AddRangeToSet("my-key", new[] {"my-value", "my-value1"}));
 
             if (expireAt.HasValue)
             {
@@ -204,12 +217,12 @@ namespace Hangfire.LiteDB.Async.Test
 
         private ExpirationManager CreateManager()
         {
-            return new ExpirationManager(_storage);
+            return new(_storage);
         }
 
         private static void Commit(HangfireDbContextAsync connection, Action<LiteDbWriteOnlyTransactionAsync> action)
         {
-            using (LiteDbWriteOnlyTransactionAsync transactionAsync = new LiteDbWriteOnlyTransactionAsync(connection, _queueProviders))
+            using (var transactionAsync = new LiteDbWriteOnlyTransactionAsync(connection, _queueProviders))
             {
                 action(transactionAsync);
                 transactionAsync.Commit();

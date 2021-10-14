@@ -11,11 +11,12 @@ namespace Hangfire.LiteDB.Async.Test
     [Collection("Database")]
     public class CountersAggregatorFacts
     {
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task CountersAggregatorExecutesProperly()
         {
             var storage = ConnectionUtils.CreateStorage();
-            using var connection = (LiteDbConnectionAsync)storage.GetConnection();
+            using var connection = (LiteDbConnectionAsync) storage.GetConnection();
             // Arrange
             await connection.Database.StateDataCounter.InsertAsync(new Counter
             {

@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Hangfire.Storage;
 using LiteDB;
 
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class LiteDbFetchedJobAsync : IFetchedJob
     {
-         private readonly HangfireDbContextAsync _connection;
+        private readonly HangfireDbContextAsync _connection;
         private readonly ObjectId _id;
 
         private bool _disposed;
@@ -20,7 +18,7 @@ namespace Hangfire.LiteDB.Async
         private bool _requeued;
 
         /// <summary>
-        /// Constructs fetched job by database connection, identifier, job ID and queue
+        ///     Constructs fetched job by database connection, identifier, job ID and queue
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="id">Identifier</param>
@@ -35,17 +33,17 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Job ID
-        /// </summary>
-        public string JobId { get; }
-
-        /// <summary>
-        /// Queue name
+        ///     Queue name
         /// </summary>
         public string Queue { get; }
 
         /// <summary>
-        /// Removes fetched job from a queue
+        ///     Job ID
+        /// </summary>
+        public string JobId { get; }
+
+        /// <summary>
+        ///     Removes fetched job from a queue
         /// </summary>
         public void RemoveFromQueue()
         {
@@ -57,11 +55,10 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Puts fetched job into a queue
+        ///     Puts fetched job into a queue
         /// </summary>
         public void Requeue()
         {
-            
             var jobQueue = _connection.JobQueue.FindByIdAsync(_id).GetAwaiter().GetResult();
             jobQueue.FetchedAt = null;
             _connection.JobQueue.UpdateAsync(jobQueue).GetAwaiter().GetResult();
@@ -69,16 +66,13 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// Disposes the object
+        ///     Disposes the object
         /// </summary>
         public void Dispose()
         {
             if (_disposed) return;
 
-            if (!_removedFromQueue && !_requeued)
-            {
-                Requeue();
-            }
+            if (!_removedFromQueue && !_requeued) Requeue();
 
             _disposed = true;
         }

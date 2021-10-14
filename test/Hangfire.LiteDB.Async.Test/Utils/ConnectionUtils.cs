@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Hangfire.LiteDB.Async.Test.Utils
 {
@@ -7,7 +6,7 @@ namespace Hangfire.LiteDB.Async.Test.Utils
     public static class ConnectionUtils
     {
         private const string Ext = "db";
-        
+
         private static string GetConnectionString()
         {
             var pathDb = Path.GetFullPath(string.Format("Hangfire-LiteDB-Tests.{0}", Ext));
@@ -17,7 +16,7 @@ namespace Hangfire.LiteDB.Async.Test.Utils
         public static LiteDbStorageAsync CreateStorage()
         {
             var storageOptions = new LiteDbStorageOptions();
-            
+
             return CreateStorage(storageOptions);
         }
 

@@ -5,19 +5,19 @@ using System.Collections.Generic;
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class PersistentJobQueueProviderCollectionAsync
         : IEnumerable<IPersistentJobQueueAsyncProvider>
     {
-        private readonly List<IPersistentJobQueueAsyncProvider> _providers = new List<IPersistentJobQueueAsyncProvider>();
-
-        private readonly Dictionary<string, IPersistentJobQueueAsyncProvider> _providersByQueue = new Dictionary<string, IPersistentJobQueueAsyncProvider>(StringComparer.OrdinalIgnoreCase);
-
         private readonly IPersistentJobQueueAsyncProvider _defaultProvider;
 
+        private readonly List<IPersistentJobQueueAsyncProvider> _providers =
+            new List<IPersistentJobQueueAsyncProvider>();
+
+        private readonly Dictionary<string, IPersistentJobQueueAsyncProvider> _providersByQueue =
+            new Dictionary<string, IPersistentJobQueueAsyncProvider>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="defaultProvider"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -29,7 +29,19 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator<IPersistentJobQueueAsyncProvider> GetEnumerator()
+        {
+            return _providers.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="queues"></param>
@@ -43,14 +55,10 @@ namespace Hangfire.LiteDB.Async
 
             _providers.Add(provider);
 
-            foreach (var queue in queues)
-            {
-                _providersByQueue.Add(queue, provider);
-            }
+            foreach (var queue in queues) _providersByQueue.Add(queue, provider);
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>
@@ -59,19 +67,6 @@ namespace Hangfire.LiteDB.Async
             return _providersByQueue.ContainsKey(queue)
                 ? _providersByQueue[queue]
                 : _defaultProvider;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator<IPersistentJobQueueAsyncProvider> GetEnumerator()
-        {
-            return _providers.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

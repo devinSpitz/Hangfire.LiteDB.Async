@@ -23,7 +23,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Equal("connection", exception.ParamName);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetQueues_ShouldReturnEmpty_WhenNoQueuesExist()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -32,7 +33,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Empty(queues);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetQueues_ShouldReturnOneQueue_WhenOneQueueExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -46,7 +48,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Equal(QueueName1, queues.First());
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetQueues_ShouldReturnTwoUniqueQueues_WhenThreeNonUniqueQueuesExist()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -63,18 +66,20 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(QueueName2, queues);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnEmpty_WheNoQueuesExist()
         {
             var connection = ConnectionUtils.CreateConnection();
             var liteDbJobQueueMonitoringApi = CreateLiteDbJobQueueMonitoringApi(connection);
 
-            var enqueuedJobIds = (await liteDbJobQueueMonitoringApi.GetEnqueuedJobIds(QueueName1, 0, 10));
+            var enqueuedJobIds = await liteDbJobQueueMonitoringApi.GetEnqueuedJobIds(QueueName1, 0, 10);
 
             Assert.Empty(enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnEmpty_WhenOneJobWithAFetchedStateExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -87,7 +92,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Empty(enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnOneJobId_WhenOneJobExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -101,7 +107,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Equal(jobQueueDto.JobId, enqueuedJobIds.First());
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnThreeJobIds_WhenThreeJobsExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -119,7 +126,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(jobQueueDto3.JobId, enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnTwoJobIds_WhenThreeJobsExistsButOnlyTwoInRequestedQueue()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -136,7 +144,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(jobQueueDto2.JobId, enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetEnqueuedJobIds_ShouldReturnTwoJobIds_WhenThreeJobsExistsButLimitIsSet()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -153,18 +162,20 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(jobQueueDto2.JobId, enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnEmpty_WheNoQueuesExist()
         {
             var connection = ConnectionUtils.CreateConnection();
             var liteDbJobQueueMonitoringApi = CreateLiteDbJobQueueMonitoringApi(connection);
 
-            var enqueuedJobIds = (await liteDbJobQueueMonitoringApi.GetFetchedJobIds(QueueName1, 0, 10));
+            var enqueuedJobIds = await liteDbJobQueueMonitoringApi.GetFetchedJobIds(QueueName1, 0, 10);
 
             Assert.Empty(enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnEmpty_WhenOneJobWithNonFetchedStateExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -177,7 +188,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Empty(enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnOneJobId_WhenOneJobExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -191,7 +203,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Equal(jobQueueDto.JobId, enqueuedJobIds.First());
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnThreeJobIds_WhenThreeJobsExists()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -209,7 +222,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(jobQueueDto3.JobId, enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnTwoJobIds_WhenThreeJobsExistsButOnlyTwoInRequestedQueue()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -226,7 +240,8 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
             Assert.Contains(jobQueueDto2.JobId, enqueuedJobIds);
         }
 
-        [Fact, CleanDatabase]
+        [Fact]
+        [CleanDatabase]
         public async Task GetFetchedJobIds_ShouldReturnTwoJobIds_WhenThreeJobsExistsButLimitIsSet()
         {
             var connection = ConnectionUtils.CreateConnection();
@@ -260,10 +275,7 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
                 JobId = job.Id
             };
 
-            if (isFetched)
-            {
-                jobQueue.FetchedAt = DateTime.UtcNow.AddDays(-1);
-            }
+            if (isFetched) jobQueue.FetchedAt = DateTime.UtcNow.AddDays(-1);
 
             var bla = await connection.JobQueue.InsertAsync(jobQueue);
 
@@ -273,7 +285,7 @@ namespace Hangfire.LiteDB.Async.Test.PersistentJobQueue.LiteDB
         private static LiteDbJobQueueMonitoringApiAsync CreateLiteDbJobQueueMonitoringApi(
             HangfireDbContextAsync connection)
         {
-            return new LiteDbJobQueueMonitoringApiAsync(connection);
+            return new(connection);
         }
     }
 #pragma warning restore 1591

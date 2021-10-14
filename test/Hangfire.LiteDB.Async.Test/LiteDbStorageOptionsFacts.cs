@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact]
         public void Ctor_SetsTheDefaultOptions()
         {
-            LiteDbStorageOptions storageOptions = new LiteDbStorageOptions();
+            var storageOptions = new LiteDbStorageOptions();
 
             Assert.Equal("hangfire", storageOptions.Prefix);
             Assert.True(storageOptions.InvisibilityTimeout > TimeSpan.Zero);
@@ -22,7 +21,7 @@ namespace Hangfire.LiteDB.Async.Test
         public void Ctor_SetsTheDefaultOptions_ShouldGenerateClientId()
         {
             var storageOptions = new LiteDbStorageOptions();
-            Assert.False(String.IsNullOrWhiteSpace(storageOptions.ClientId));
+            Assert.False(string.IsNullOrWhiteSpace(storageOptions.ClientId));
         }
 
         [Fact]
@@ -32,7 +31,8 @@ namespace Hangfire.LiteDB.Async.Test
             var storageOptions2 = new LiteDbStorageOptions();
             var storageOptions3 = new LiteDbStorageOptions();
 
-            IEnumerable<string> result = new[] { storageOptions1.ClientId, storageOptions2.ClientId, storageOptions3.ClientId }.Distinct();
+            var result = new[] {storageOptions1.ClientId, storageOptions2.ClientId, storageOptions3.ClientId}
+                .Distinct();
 
             Assert.Equal(3, result.Count());
         }

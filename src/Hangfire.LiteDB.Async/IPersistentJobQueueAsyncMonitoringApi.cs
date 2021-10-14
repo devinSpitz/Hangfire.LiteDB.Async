@@ -4,18 +4,15 @@ using System.Threading.Tasks;
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public interface IPersistentJobQueueAsyncMonitoringApi
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         Task<IEnumerable<string>> GetQueues();
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="from"></param>
@@ -24,7 +21,6 @@ namespace Hangfire.LiteDB.Async
         Task<IEnumerable<int>> GetEnqueuedJobIds(string queue, int from, int perPage);
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="from"></param>
@@ -33,7 +29,6 @@ namespace Hangfire.LiteDB.Async
         Task<IEnumerable<int>> GetFetchedJobIds(string queue, int from, int perPage);
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>

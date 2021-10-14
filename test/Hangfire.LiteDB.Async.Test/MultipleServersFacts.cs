@@ -18,7 +18,8 @@ namespace Hangfire.LiteDB.Async.Test
             _testOutputHelper = testOutputHelper;
         }
 
-        [Fact(Skip = "Long running and does not always fail"), CleanDatabase]
+        [Fact(Skip = "Long running and does not always fail")]
+        [CleanDatabase]
         public void MultipleServerRunsRecurrentJobs()
         {
             // ARRANGE
@@ -26,14 +27,16 @@ namespace Hangfire.LiteDB.Async.Test
             const int workerCount = 20;
 
             var options = new BackgroundJobServerOptions[serverCount];
-            var storage = ConnectionUtils.CreateStorage(new LiteDbStorageOptions { QueuePollInterval = TimeSpan.FromSeconds(1) });
+            var storage = ConnectionUtils.CreateStorage(new LiteDbStorageOptions
+                {QueuePollInterval = TimeSpan.FromSeconds(1)});
             var servers = new BackgroundJobServer[serverCount];
 
             var jobManagers = new RecurringJobManager[serverCount];
 
-            for (int i = 0; i < serverCount; i++)
+            for (var i = 0; i < serverCount; i++)
             {
-                options[i] = new BackgroundJobServerOptions { Queues = new[] { $"queue_options_{i}" }, WorkerCount = workerCount };
+                options[i] = new BackgroundJobServerOptions
+                    {Queues = new[] {$"queue_options_{i}"}, WorkerCount = workerCount};
 
                 servers[i] = new BackgroundJobServer(options[i], storage);
                 jobManagers[i] = new RecurringJobManager(storage);
@@ -41,14 +44,13 @@ namespace Hangfire.LiteDB.Async.Test
 
             try
             {
-
                 // ACT
-                for (int i = 0; i < serverCount; i++)
+                for (var i = 0; i < serverCount; i++)
                 {
                     var i1 = i;
                     var jobManager = jobManagers[i1];
 
-                    for (int j = 0; j < workerCount; j++)
+                    for (var j = 0; j < workerCount; j++)
                     {
                         var j1 = j;
                         var queueIndex = j1 % options[i1].Queues.Length;
@@ -70,14 +72,13 @@ namespace Hangfire.LiteDB.Async.Test
             }
             finally
             {
-                for (int i = 0; i < serverCount; i++)
+                for (var i = 0; i < serverCount; i++)
                 {
                     servers[i].SendStop();
                     servers[i].Dispose();
                 }
             }
         }
-
     }
 #pragma warning restore 1591
 }

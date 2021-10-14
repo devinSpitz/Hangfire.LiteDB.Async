@@ -11,6 +11,8 @@ namespace MvcSample
 {
     public class Startup
     {
+        public static int X;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -22,20 +24,16 @@ namespace MvcSample
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddHangfire(t => t.UseLiteDbStorageAsync(Configuration[key: "ConnectionStrings:Database"]));
+            services.AddHangfire(t => t.UseLiteDbStorageAsync(Configuration["ConnectionStrings:Database"]));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
             else
-            {
                 app.UseExceptionHandler("/Home/Error");
-            }
 
             app.UseStaticFiles();
             // Add Hangfire Server and Dashboard support
@@ -51,9 +49,10 @@ namespace MvcSample
             RecurringJob.AddOrUpdate(() => Test(), Cron.Minutely);
         }
 
-        public static int X;
-
         [AutomaticRetry(Attempts = 2, LogEvents = true, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
-        public static void Test() => Debug.WriteLine($"{X++} Cron Job: Hello, world!");//throw new ArgumentException("fail");
+        public static void Test()
+        {
+            Debug.WriteLine($"{X++} Cron Job: Hello, world!"); //throw new ArgumentException("fail");
+        }
     }
 }

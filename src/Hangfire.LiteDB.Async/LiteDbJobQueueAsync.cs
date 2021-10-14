@@ -4,21 +4,17 @@ using System.Threading.Tasks;
 using Hangfire.Annotations;
 using Hangfire.LiteDB.Entities;
 using Hangfire.Storage;
-using LiteDB;
 
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class LiteDbJobQueueAsync : IPersistentJobQueueAsync
     {
+        private readonly HangfireDbContextAsync _connection;
         private readonly LiteDbStorageOptions _storageOptions;
 
-        private readonly HangfireDbContextAsync _connection;
-
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="storageOptions"></param>
@@ -29,7 +25,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queues"></param>
         /// <param name="cancellationToken"></param>
@@ -37,15 +32,9 @@ namespace Hangfire.LiteDB.Async
         [NotNull]
         public async Task<IFetchedJob> Dequeue(string[] queues, CancellationToken cancellationToken)
         {
-            if (queues == null)
-            {
-                throw new ArgumentNullException(nameof(queues));
-            }
+            if (queues == null) throw new ArgumentNullException(nameof(queues));
 
-            if (queues.Length == 0)
-            {
-                throw new ArgumentException("Queue array must be non-empty.", nameof(queues));
-            }
+            if (queues.Length == 0) throw new ArgumentException("Queue array must be non-empty.", nameof(queues));
 
 
             JobQueue fetchedJob = null;
@@ -56,9 +45,8 @@ namespace Hangfire.LiteDB.Async
 
                 foreach (var queue in queues)
                 {
-                    var lockQueue = string.Intern($"f13333e1-a0c8-48c8-bf8c-788e89030329_{queue}");
-                        fetchedJob =
-                            await _connection.JobQueue.FindOneAsync(x => x.FetchedAt == null && x.Queue == queue);
+                    fetchedJob =
+                        await _connection.JobQueue.FindOneAsync(x => x.FetchedAt == null && x.Queue == queue);
 
                     if (fetchedJob != null)
                     {
@@ -96,8 +84,8 @@ namespace Hangfire.LiteDB.Async
 
             return new LiteDbFetchedJobAsync(_connection, fetchedJob.Id, fetchedJob.JobId, fetchedJob.Queue);
         }
+
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="jobId"></param>

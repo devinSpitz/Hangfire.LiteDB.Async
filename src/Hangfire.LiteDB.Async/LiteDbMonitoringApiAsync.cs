@@ -6,12 +6,10 @@ using Hangfire.LiteDB.Entities;
 using Hangfire.States;
 using Hangfire.Storage;
 using Hangfire.Storage.Monitoring;
-using LiteDB;
 
 namespace Hangfire.LiteDB.Async
 {
     /// <summary>
-    /// 
     /// </summary>
     public class LiteDbMonitoringApiAsync : IMonitoringApi
     {
@@ -20,18 +18,17 @@ namespace Hangfire.LiteDB.Async
         private readonly PersistentJobQueueProviderCollectionAsync _queueProviders;
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="database"></param>
         /// <param name="queueProviders"></param>
-        public LiteDbMonitoringApiAsync(HangfireDbContextAsync database, PersistentJobQueueProviderCollectionAsync queueProviders)
+        public LiteDbMonitoringApiAsync(HangfireDbContextAsync database,
+            PersistentJobQueueProviderCollectionAsync queueProviders)
         {
             _database = database;
             _queueProviders = queueProviders;
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IList<QueueWithTopEnqueuedJobsDto> Queues()
@@ -40,29 +37,29 @@ namespace Hangfire.LiteDB.Async
             {
                 var tuples = _queueProviders
                     .Select(x => x.GetJobQueueMonitoringApi(connection))
-                    .SelectMany(x => x.GetQueues().GetAwaiter().GetResult(), (monitoring, queue) => new { Monitoring = monitoring, Queue = queue })
+                    .SelectMany(x => x.GetQueues().GetAwaiter().GetResult(),
+                        (monitoring, queue) => new {Monitoring = monitoring, Queue = queue})
                     .AsEnumerable()
                     .OrderBy(x => x.Queue)
                     .ToArray();
 
                 var result = new List<QueueWithTopEnqueuedJobsDto>(tuples.Length);
                 result.AddRange(from tuple in tuples
-                                let enqueuedJobIds = tuple.Monitoring.GetEnqueuedJobIds(tuple.Queue, 0, 5).GetAwaiter().GetResult()
-                                let counters = tuple.Monitoring.GetEnqueuedAndFetchedCount(tuple.Queue).GetAwaiter().GetResult()
-                                select new QueueWithTopEnqueuedJobsDto
-                                {
-                                    Name = tuple.Queue,
-                                    Length = counters.EnqueuedCount ?? 0,
-                                    Fetched = counters.FetchedCount,
-                                    FirstJobs = EnqueuedJobs(connection, enqueuedJobIds)
-                                });
+                    let enqueuedJobIds = tuple.Monitoring.GetEnqueuedJobIds(tuple.Queue, 0, 5).GetAwaiter().GetResult()
+                    let counters = tuple.Monitoring.GetEnqueuedAndFetchedCount(tuple.Queue).GetAwaiter().GetResult()
+                    select new QueueWithTopEnqueuedJobsDto
+                    {
+                        Name = tuple.Queue,
+                        Length = counters.EnqueuedCount ?? 0,
+                        Fetched = counters.FetchedCount,
+                        FirstJobs = EnqueuedJobs(connection, enqueuedJobIds)
+                    });
 
                 return result;
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IList<ServerDto> Servers()
@@ -72,20 +69,19 @@ namespace Hangfire.LiteDB.Async
                 var servers = ctx.Server.FindAllAsync().GetAwaiter().GetResult().ToList();
 
                 return (from server in servers
-                        let data = SerializationHelper.Deserialize<ServerData>(server.Data, SerializationOption.User)
-                        select new ServerDto
-                        {
-                            Name = server.Id.ToString(),
-                            Heartbeat = server.LastHeartbeat,
-                            Queues = data.Queues.ToList(),
-                            StartedAt = data.StartedAt ?? DateTime.MinValue,
-                            WorkersCount = data.WorkerCount
-                        }).ToList();
+                    let data = SerializationHelper.Deserialize<ServerData>(server.Data, SerializationOption.User)
+                    select new ServerDto
+                    {
+                        Name = server.Id,
+                        Heartbeat = server.LastHeartbeat,
+                        Queues = data.Queues.ToList(),
+                        StartedAt = data.StartedAt ?? DateTime.MinValue,
+                        WorkersCount = data.WorkerCount
+                    }).ToList();
             });
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="jobId"></param>
         /// <returns></returns>
@@ -94,7 +90,7 @@ namespace Hangfire.LiteDB.Async
             return UseConnection(ctx =>
             {
                 var iJobId = int.Parse(jobId);
-                var job = ctx.Job.FindByIdAsync( iJobId).GetAwaiter().GetResult();
+                var job = ctx.Job.FindByIdAsync(iJobId).GetAwaiter().GetResult();
 
                 if (job == null)
                     return null;
@@ -119,7 +115,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public StatisticsDto GetStatistics()
@@ -130,10 +125,13 @@ namespace Hangfire.LiteDB.Async
 
                 var countByStates = ctx.Job.FindAsync(_ => _.StateName != null).GetAwaiter().GetResult()
                     .GroupBy(x => x.StateName)
-                    .Select(k => new { StateName = k.Key, Count = k.Count() })
+                    .Select(k => new {StateName = k.Key, Count = k.Count()})
                     .AsEnumerable().ToDictionary(kv => kv.StateName, kv => kv.Count);
 
-                int GetCountIfExists(string name) => countByStates.ContainsKey(name) ? countByStates[name] : 0;
+                int GetCountIfExists(string name)
+                {
+                    return countByStates.ContainsKey(name) ? countByStates[name] : 0;
+                }
 
                 stats.Enqueued = GetCountIfExists(EnqueuedState.StateName);
                 stats.Failed = GetCountIfExists(FailedState.StateName);
@@ -152,7 +150,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="from"></param>
@@ -170,7 +167,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <param name="from"></param>
@@ -188,7 +184,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="from"></param>
         /// <param name="count"></param>
@@ -203,12 +198,11 @@ namespace Hangfire.LiteDB.Async
                 {
                     Job = job,
                     ServerId = stateData.ContainsKey("ServerId") ? stateData["ServerId"] : stateData["ServerName"],
-                    StartedAt = JobHelper.DeserializeDateTime(stateData["StartedAt"]),
+                    StartedAt = JobHelper.DeserializeDateTime(stateData["StartedAt"])
                 }));
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="from"></param>
         /// <param name="count"></param>
@@ -225,7 +219,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="from"></param>
         /// <param name="count"></param>
@@ -238,14 +231,14 @@ namespace Hangfire.LiteDB.Async
                     Job = job,
                     Result = stateData.ContainsKey("Result") ? stateData["Result"] : null,
                     TotalDuration = stateData.ContainsKey("PerformanceDuration") && stateData.ContainsKey("Latency")
-                        ? (long?)long.Parse(stateData["PerformanceDuration"]) + (long?)long.Parse(stateData["Latency"])
+                        ? (long?) long.Parse(stateData["PerformanceDuration"]) +
+                          (long?) long.Parse(stateData["Latency"])
                         : null,
                     SucceededAt = JobHelper.DeserializeNullableDateTime(stateData["SucceededAt"])
                 }));
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="from"></param>
         /// <param name="count"></param>
@@ -265,7 +258,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="from"></param>
         /// <param name="count"></param>
@@ -281,7 +273,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public long ScheduledCount()
@@ -290,7 +281,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>
@@ -306,7 +296,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>
@@ -322,7 +311,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public long FailedCount()
@@ -331,7 +319,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public long ProcessingCount()
@@ -340,7 +327,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public long SucceededListCount()
@@ -349,7 +335,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public long DeletedListCount()
@@ -358,7 +343,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IDictionary<DateTime, long> SucceededByDatesCount()
@@ -367,7 +351,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IDictionary<DateTime, long> FailedByDatesCount()
@@ -376,7 +359,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IDictionary<DateTime, long> HourlySucceededJobs()
@@ -385,7 +367,6 @@ namespace Hangfire.LiteDB.Async
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public IDictionary<DateTime, long> HourlyFailedJobs()
@@ -407,7 +388,8 @@ namespace Hangfire.LiteDB.Async
                 .ToList();
 
             var enqueuedJobs = connection.JobQueue
-                .FindAsync(x => x.FetchedAt == null && jobs.Select(_ => _.Id).Contains(x.JobId)).GetAwaiter().GetResult()
+                .FindAsync(x => x.FetchedAt == null && jobs.Select(_ => _.Id).Contains(x.JobId)).GetAwaiter()
+                .GetResult()
                 .ToList();
 
             var jobsFiltered = enqueuedJobs
@@ -445,14 +427,16 @@ namespace Hangfire.LiteDB.Async
                 });
         }
 
-        private static JobList<TDto> DeserializeJobs<TDto>(ICollection<JobDetailedDto> jobs, Func<JobDetailedDto, Job, Dictionary<string, string>, TDto> selector)
+        private static JobList<TDto> DeserializeJobs<TDto>(ICollection<JobDetailedDto> jobs,
+            Func<JobDetailedDto, Job, Dictionary<string, string>, TDto> selector)
         {
             var result = new List<KeyValuePair<string, TDto>>(jobs.Count);
 
             foreach (var job in jobs)
             {
                 var stateData = job.StateData;
-                result.Add(new KeyValuePair<string, TDto>(job.Id.ToString(), selector(job, DeserializeJob(job.InvocationData, job.Arguments), stateData)));
+                result.Add(new KeyValuePair<string, TDto>(job.Id.ToString(),
+                    selector(job, DeserializeJob(job.InvocationData, job.Arguments), stateData)));
             }
 
             return new JobList<TDto>(result);
@@ -488,12 +472,13 @@ namespace Hangfire.LiteDB.Async
                 .ToList();
 
             var jobIdToJobQueueMap = connection.JobQueue
-                .FindAsync(x => x.FetchedAt != null && jobs.Select(_ => _.Id).Contains(x.JobId)).GetAwaiter().GetResult()
+                .FindAsync(x => x.FetchedAt != null && jobs.Select(_ => _.Id).Contains(x.JobId)).GetAwaiter()
+                .GetResult()
                 .AsEnumerable().ToDictionary(kv => kv.JobId, kv => kv);
 
-            IEnumerable<LiteJob> jobsFiltered = jobs.Where(job => jobIdToJobQueueMap.ContainsKey(job.Id));
+            var jobsFiltered = jobs.Where(job => jobIdToJobQueueMap.ContainsKey(job.Id));
 
-            List<JobDetailedDto> joinedJobs = jobsFiltered
+            var joinedJobs = jobsFiltered
                 .Select(job =>
                 {
                     var state = job.StateHistory.FirstOrDefault(s => s.Name == job.StateName);
@@ -515,7 +500,6 @@ namespace Hangfire.LiteDB.Async
             var result = new List<KeyValuePair<string, FetchedJobDto>>(joinedJobs.Count);
 
             foreach (var job in joinedJobs)
-            {
                 result.Add(new KeyValuePair<string, FetchedJobDto>(
                     job.Id.ToString(),
                     new FetchedJobDto
@@ -524,12 +508,12 @@ namespace Hangfire.LiteDB.Async
                         State = job.StateName,
                         FetchedAt = job.FetchedAt
                     }));
-            }
 
             return new JobList<FetchedJobDto>(result);
         }
 
-        private JobList<TDto> GetJobs<TDto>(HangfireDbContextAsync connection, int from, int count, string stateName, Func<JobDetailedDto, Job, Dictionary<string, string>, TDto> selector)
+        private JobList<TDto> GetJobs<TDto>(HangfireDbContextAsync connection, int from, int count, string stateName,
+            Func<JobDetailedDto, Job, Dictionary<string, string>, TDto> selector)
         {
             var jobs = connection.Job
                 .FindAsync(_ => _.StateName == stateName).GetAwaiter().GetResult()
@@ -538,7 +522,7 @@ namespace Hangfire.LiteDB.Async
                 .Take(count)
                 .ToList();
 
-            List<JobDetailedDto> joinedJobs = jobs
+            var joinedJobs = jobs
                 .Select(job =>
                 {
                     var state = job.StateHistory.FirstOrDefault(s => s.Name == stateName);
@@ -589,9 +573,8 @@ namespace Hangfire.LiteDB.Async
                 .ToDictionary(x => x.Key, x => Convert.ToInt64(x.Sum(y => y.Value.ToInt64())));
 
             foreach (var key in keys)
-            {
-                if (!valuesAggregatorMap.ContainsKey(key)) valuesAggregatorMap.Add(key, 0);
-            }
+                if (!valuesAggregatorMap.ContainsKey(key))
+                    valuesAggregatorMap.Add(key, 0);
 
             var result = new Dictionary<DateTime, long>();
             for (var i = 0; i < stringDates.Count; i++)
@@ -622,9 +605,7 @@ namespace Hangfire.LiteDB.Async
                 .ToDictionary(x => x.Key, x => x.Sum(y => y.Value.ToInt64()));
 
             foreach (var key in keys.Where(key => !valuesAggregatorMap.ContainsKey(key)))
-            {
                 valuesAggregatorMap.Add(key, 0);
-            }
 
             var result = new Dictionary<DateTime, long>();
             for (var i = 0; i < dates.Count; i++)
