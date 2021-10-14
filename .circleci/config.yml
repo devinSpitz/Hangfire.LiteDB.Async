@@ -24,7 +24,8 @@ jobs:
           working_directory:  .
           name: Run tests
           command: |
-            cd test\Hangfire.LiteDB.Async.Test
+            ls -axl
+            cd test/Hangfire.LiteDB.Async.Test
             dotnet test Hangfire.LiteDB.Async.Test.csproj
       - persist_to_workspace:
           root: .
