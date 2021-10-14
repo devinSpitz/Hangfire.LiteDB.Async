@@ -18,9 +18,9 @@ namespace Hangfire.LiteDB.Async.Test
 
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenConnectionIsNull()
+        public void Ctor_ThrowsAnException_WhenConnectionIsNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new LiteDbFetchedJobAsync(null, ObjectId.NewObjectId(), JobId, Queue));
 
@@ -28,18 +28,18 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenJobIdIsNull()
+        public void Ctor_ThrowsAnException_WhenJobIdIsNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var exception = Assert.Throws<ArgumentNullException>(() => new LiteDbFetchedJobAsync(connection, ObjectId.NewObjectId(), null, Queue));
 
                 Assert.Equal("jobId", exception.ParamName);
         }
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenQueueIsNull()
+        public void Ctor_ThrowsAnException_WhenQueueIsNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new LiteDbFetchedJobAsync(connection, ObjectId.NewObjectId(), JobId, null));
 
@@ -47,9 +47,9 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact]
-        public async Task Ctor_CorrectlySets_AllInstanceProperties()
+        public void Ctor_CorrectlySets_AllInstanceProperties()
         {
-            var connection = await UseConnection();
+                var connection = UseConnection();
                 var fetchedJob = new LiteDbFetchedJobAsync(connection, ObjectId.NewObjectId(), JobId, Queue);
 
                 Assert.Equal(JobId.ToString(), fetchedJob.JobId);
@@ -59,7 +59,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task RemoveFromQueue_ReallyDeletesTheJobFromTheQueue()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 // Arrange
                 var queue = "default";
                 var jobId = 1;
@@ -77,11 +77,11 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task RemoveFromQueue_DoesNotDelete_UnrelatedJobs()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 // Arrange
-                CreateJobQueueRecord(connection, 1, "default");
-                CreateJobQueueRecord(connection, 2, "critical");
-                CreateJobQueueRecord(connection, 3, "default");
+                await CreateJobQueueRecord(connection, 1, "default");
+                await CreateJobQueueRecord(connection, 2, "critical");
+                await CreateJobQueueRecord(connection, 3, "default");
 
                 var fetchedJob = new LiteDbFetchedJobAsync(connection, ObjectId.NewObjectId(), 999, "default");
 
@@ -96,7 +96,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Requeue_SetsFetchedAtValueToNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 // Arrange
                 var queue = "default";
                 var jobId = 1;
@@ -114,7 +114,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dispose_SetsFetchedAtValueToNull_IfThereWereNoCallsToComplete()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 // Arrange
                 var queue = "default";
                 var jobId = 1;
@@ -144,7 +144,7 @@ namespace Hangfire.LiteDB.Async.Test
             return jobQueue.Id;
         }
 
-        private static async Task<HangfireDbContextAsync> UseConnection()
+        private static HangfireDbContextAsync UseConnection()
         {
             var connection = ConnectionUtils.CreateConnection();
             return connection;

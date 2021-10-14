@@ -52,7 +52,7 @@ namespace Hangfire.LiteDB.Async
     /// 
     /// </summary>
     /// <returns></returns>
-    public override IStorageConnection GetConnection() => (IStorageConnection) new LiteDbConnectionAsync(this.Connection, this._storageOptions, this.QueueProviders);
+    public override IStorageConnection GetConnection() => (IStorageConnection) new LiteDbConnectionAsync(this.Connection, this.QueueProviders);
 
     /// <summary>
     /// 

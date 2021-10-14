@@ -46,10 +46,8 @@ namespace Hangfire.LiteDB.Async.Test
         public void GetConnection_ReturnsNonNullInstance()
         {
             LiteDbStorageAsync storage = ConnectionUtils.CreateStorage();
-            using (IStorageConnection connection = storage.GetConnection())
-            {
-                Assert.NotNull(connection);
-            }
+            using IStorageConnection connection = storage.GetConnection();
+            Assert.NotNull(connection);
         }
 
         //[Fact]

@@ -56,12 +56,12 @@ namespace Hangfire.LiteDB.Async.Test
             var tmp = UseMonitoringApi();
             var database = tmp.Item1;
             var monitoringApi = tmp.Item2;
-                CreateJobInState(database, 1, EnqueuedState.StateName);
-                CreateJobInState(database,2, EnqueuedState.StateName);
-                CreateJobInState(database, 4, FailedState.StateName);
-                CreateJobInState(database, 5, ProcessingState.StateName);
-                CreateJobInState(database, 6, ScheduledState.StateName);
-                CreateJobInState(database, 7, ScheduledState.StateName);
+            await CreateJobInState(database, 1, EnqueuedState.StateName);
+            await CreateJobInState(database,2, EnqueuedState.StateName);
+            await CreateJobInState(database, 4, FailedState.StateName);
+            await CreateJobInState(database, 5, ProcessingState.StateName);
+            await CreateJobInState(database, 6, ScheduledState.StateName);
+            await CreateJobInState(database, 7, ScheduledState.StateName);
 
                 var result = monitoringApi.GetStatistics();
                 Assert.Equal(2, result.Enqueued);
@@ -71,7 +71,7 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact, CleanDatabase]
-        public async Task JobDetails_ReturnsNull_WhenThereIsNoSuchJob()
+        public void JobDetails_ReturnsNull_WhenThereIsNoSuchJob()
         {
             var tmp = UseMonitoringApi();
             var database = tmp.Item1;
@@ -98,7 +98,7 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact, CleanDatabase]
-        public async Task EnqueuedJobs_ReturnsEmpty_WhenThereIsNoJobs()
+        public void EnqueuedJobs_ReturnsEmpty_WhenThereIsNoJobs()
         {
             var tmp = UseMonitoringApi();
             var database = tmp.Item1;
@@ -171,7 +171,7 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact, CleanDatabase]
-        public async Task FetchedJobs_ReturnsEmpty_WhenThereIsNoJobs()
+        public void FetchedJobs_ReturnsEmpty_WhenThereIsNoJobs()
         {
             var tmp = UseMonitoringApi();
             var database = tmp.Item1;

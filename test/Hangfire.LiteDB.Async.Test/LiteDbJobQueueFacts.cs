@@ -15,7 +15,7 @@ namespace Hangfire.LiteDB.Async.Test
         private static readonly string[] DefaultQueues = { "default" };
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenConnectionIsNull()
+        public void Ctor_ThrowsAnException_WhenConnectionIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new LiteDbJobQueueAsync(null, new LiteDbStorageOptions()));
@@ -24,9 +24,9 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenOptionsValueIsNull()
+        public void Ctor_ThrowsAnException_WhenOptionsValueIsNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var exception = Assert.Throws<ArgumentNullException>(() =>
                     new LiteDbJobQueueAsync(connection, null));
 
@@ -36,7 +36,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsNull()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var queue = CreateJobQueue(connection);
 
                 var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
@@ -48,7 +48,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dequeue_ShouldThrowAnException_WhenQueuesCollectionIsEmpty()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var queue = CreateJobQueue(connection);
 
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -60,7 +60,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact]
         public async Task Dequeue_ThrowsOperationCanceled_WhenCancellationTokenIsSetAtTheBeginning()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var cts = new CancellationTokenSource();
                 cts.Cancel();
                 var queue = CreateJobQueue(connection);
@@ -72,7 +72,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dequeue_ShouldWaitIndefinitely_WhenThereAreNoJobs()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var cts = new CancellationTokenSource(200);
                 var queue = CreateJobQueue(connection);
 
@@ -84,7 +84,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Dequeue_ShouldFetchAJob_FromTheSpecifiedQueue()
         {
             // Arrange
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var jobQueue = new JobQueue
                 {
                     JobId = 1,
@@ -107,7 +107,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Dequeue_ShouldLeaveJobInTheQueue_ButSetItsFetchedAtValue()
         {
             // Arrange
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var job = new LiteJob
                 {
                     InvocationData = "",
@@ -141,7 +141,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Dequeue_ShouldFetchATimedOutJobs_FromTheSpecifiedQueue()
         {
             // Arrange
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var job = new LiteJob
                 {
                     InvocationData = "",
@@ -171,7 +171,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Dequeue_ShouldSetFetchedAt_OnlyForTheFetchedJob()
         {
             // Arrange
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var job1 = new LiteJob
                 {
                     InvocationData = "",
@@ -215,7 +215,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dequeue_ShouldFetchJobs_OnlyFromSpecifiedQueues()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var job1 = new LiteJob
                 {
                     InvocationData = "",
@@ -239,7 +239,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Dequeue_ShouldFetchJobs_FromMultipleQueuesBasedOnQueuePriority()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var criticalJob = new LiteJob
                 {
                     InvocationData = "",
@@ -288,7 +288,7 @@ namespace Hangfire.LiteDB.Async.Test
         [Fact, CleanDatabase]
         public async Task Enqueue_AddsAJobToTheQueue()
         {
-            var connection = await UseConnection();
+            var connection = UseConnection();
                 var queue = CreateJobQueue(connection);
 
                 await queue.Enqueue("default", "1");
@@ -310,7 +310,7 @@ namespace Hangfire.LiteDB.Async.Test
             return new LiteDbJobQueueAsync(connection, new LiteDbStorageOptions());
         }
 
-        private static async Task<HangfireDbContextAsync> UseConnection()
+        private static HangfireDbContextAsync UseConnection()
         {
             var connection = ConnectionUtils.CreateConnection();
             return (connection);

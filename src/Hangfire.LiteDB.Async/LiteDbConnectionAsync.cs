@@ -16,7 +16,6 @@ namespace Hangfire.LiteDB.Async
     /// </summary>
     public class LiteDbConnectionAsync : JobStorageConnection
     {
-        private readonly LiteDbStorageOptions _storageOptions;
 
         private readonly PersistentJobQueueProviderCollectionAsync _queueProviders;
 
@@ -26,11 +25,9 @@ namespace Hangfire.LiteDB.Async
 #pragma warning disable 1591
         public LiteDbConnectionAsync(
             HangfireDbContextAsync database,
-            LiteDbStorageOptions storageOptions,
             PersistentJobQueueProviderCollectionAsync queueProviders)
         {
             Database = database ?? throw new ArgumentNullException(nameof(database));
-            _storageOptions = storageOptions ?? throw new ArgumentNullException(nameof(storageOptions));
             _queueProviders = queueProviders ?? throw new ArgumentNullException(nameof(queueProviders));
         }
 

@@ -3,12 +3,21 @@ using System.Threading.Tasks;
 using Hangfire.Common;
 using Hangfire.LiteDB.Async.Test.Utils;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Hangfire.LiteDB.Async.Test
 {
 #pragma warning disable 1591
     [Collection("Database")]
     public class MultipleServersFacts
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public MultipleServersFacts(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact(Skip = "Long running and does not always fail"), CleanDatabase]
         public void MultipleServerRunsRecurrentJobs()
         {
@@ -44,7 +53,7 @@ namespace Hangfire.LiteDB.Async.Test
                         var j1 = j;
                         var queueIndex = j1 % options[i1].Queues.Length;
                         var queueName = options[i1].Queues[queueIndex];
-                        var job = Job.FromExpression(() => Console.WriteLine("Setting signal for queue {0}",
+                        var job = Job.FromExpression(() => _testOutputHelper.WriteLine("Setting signal for queue {0}",
                             queueName));
                         var jobId = $"job:[{i},{j}]";
 

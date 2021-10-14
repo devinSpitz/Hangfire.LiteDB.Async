@@ -28,7 +28,7 @@ namespace Hangfire.LiteDB.Async.Test
         }
 
         [Fact]
-        public async Task Ctor_ThrowsAnException_WhenStorageIsNull()
+        public void Ctor_ThrowsAnException_WhenStorageIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => new ExpirationManager(null));
         }
@@ -37,7 +37,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Execute_RemovesOutdatedRecords()
         {
             var connection = ConnectionUtils.CreateConnection();
-            await CreateExpirationEntries(connection, DateTime.UtcNow.AddMonths(-1));
+            CreateExpirationEntries(connection, DateTime.UtcNow.AddMonths(-1));
             var manager = CreateManager();
             manager.Execute(_token);
             Assert.True(await IsEntryExpired(connection));
@@ -47,7 +47,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Execute_DoesNotRemoveEntries_WithNoExpirationTimeSet()
         {
             var connection = ConnectionUtils.CreateConnection();
-            await CreateExpirationEntries(connection, null);
+            CreateExpirationEntries(connection, null);
             var manager = CreateManager();
             manager.Execute(_token);
             Assert.False(await IsEntryExpired(connection));
@@ -57,7 +57,7 @@ namespace Hangfire.LiteDB.Async.Test
         public async Task Execute_DoesNotRemoveEntries_WithFreshExpirationTime()
         {
             var connection = ConnectionUtils.CreateConnection();
-            await CreateExpirationEntries(connection, DateTime.UtcNow.AddMonths(1));
+            CreateExpirationEntries(connection, DateTime.UtcNow.AddMonths(1));
             var manager = CreateManager();
             manager.Execute(_token);
             Assert.False(await IsEntryExpired(connection));
@@ -175,7 +175,7 @@ namespace Hangfire.LiteDB.Async.Test
 
 
 
-        private static async Task CreateExpirationEntries(HangfireDbContextAsync connection, DateTime? expireAt)
+        private static void CreateExpirationEntries(HangfireDbContextAsync connection, DateTime? expireAt)
         {
             Commit(connection, x => x.AddToSet("my-key", "my-value"));
             Commit(connection, x => x.AddToSet("my-key", "my-value1"));
@@ -207,7 +207,7 @@ namespace Hangfire.LiteDB.Async.Test
             return new ExpirationManager(_storage);
         }
 
-        private static async Task Commit(HangfireDbContextAsync connection, Action<LiteDbWriteOnlyTransactionAsync> action)
+        private static void Commit(HangfireDbContextAsync connection, Action<LiteDbWriteOnlyTransactionAsync> action)
         {
             using (LiteDbWriteOnlyTransactionAsync transactionAsync = new LiteDbWriteOnlyTransactionAsync(connection, _queueProviders))
             {
